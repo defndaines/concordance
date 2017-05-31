@@ -15,3 +15,14 @@
   (testing "With apostrophes."
     (is (= {"ain't" 3 "a" 1 "don't" 1 "say" 1 "so" 1 "word" 1}
            (word-count "Ain't ain't a word, so don't say ain't.")))))
+
+(deftest sort-test
+  (let [phrase "I read the book \"One Fish, Two Fish, Red Fish, Blue Fish\"
+               until I was blue in the face."
+        dance (word-count phrase)]
+    (testing "Sort alphabetically."
+      (is (= `("blue" "book" "face")
+             (take 3 (map first (sort-by lexicographic-order dance))))))
+    (testing "Sort by frequency"
+      (is (= '(["fish" 4] ["blue" 2] ["i" 2] ["the" 2] ["book" 1])
+             (take 5 (sort-by frequency-then-lexicographic-order dance)))))))
