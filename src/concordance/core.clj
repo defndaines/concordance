@@ -2,6 +2,7 @@
   "A library to tell how often words appear in a text."
   (:require [clojure.string :as string]
             [concordance.cli :as cli])
+  (:import (java.util TreeMap))
   (:gen-class))
 
 
@@ -14,6 +15,25 @@
       string/lower-case
       (string/split #"[^\p{Alnum}']+")
       frequencies))
+
+
+(def inc-count
+  "Java BiFunction for incrementing a count in a Map."
+  (reify
+    java.util.function.BiFunction
+    (apply [this k v]
+      (if v
+        (inc v)
+        1))))
+
+
+(defn- count-reducer!
+  "Reducing function which accumulates word frequencies in a *mutable* TreeMap."
+  [^TreeMap acc line]
+  (doseq [word (string/split line #"[^\p{Alnum}']+")]
+    (if (seq word)  ; Skip blank lines
+      (.compute acc (string/lower-case word) inc-count)))
+  acc)
 
 
 ;;; Sorting Options
@@ -54,7 +74,7 @@
         (cli/validate-args args)]
     (if exit-message
       (exit (if ok? 0 1) exit-message)
-      (let [order (sort-fn sort-order)
-            counts (sort-by order (word-count (slurp file-name)))]
-        (doseq [[word freq] counts]
-          (println (str word " " freq)))))))
+      (with-open [reader (clojure.java.io/reader file-name)]
+        (let [counts (reduce count-reducer! (TreeMap.) (line-seq reader))]
+          (doseq [[word freq] counts]
+            (println (str word " " freq))))))))
