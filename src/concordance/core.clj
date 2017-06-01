@@ -11,7 +11,7 @@
   "Get the word count frequencies from a given string."
   [line]
   (-> line
-      .toLowerCase
+      string/lower-case
       (string/split #"[^\p{Alnum}']+")
       frequencies))
 
