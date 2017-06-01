@@ -167,6 +167,11 @@ lines). The downside to this approach is that it would be more complex, since it
 would prevent using some core Clojure functions which would have to be
 re-written to implement the same resulting functionality.
 
+*This Branch* represents an approach using a mutable TreeMap to aggregate
+frequencies across each line of a file (instead of reading in the entire file at
+once). The performance improvement is minimal from a timing perspective,
+dropping from 1.6 seconds to 1.5 seconds to process "Les Misérables".
+
 
 ## License
 
