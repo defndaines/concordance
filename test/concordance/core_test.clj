@@ -22,7 +22,7 @@
         dance (word-count phrase)]
     (testing "Sort alphabetically."
       (is (= `("blue" "book" "face")
-             (take 3 (map first (sort-by lexicographic-order dance))))))
+             (take 3 (map first (sort-by alphabetical-order dance))))))
     (testing "Sort by frequency"
       (is (= '(["fish" 4] ["blue" 2] ["i" 2] ["the" 2] ["book" 1])
-             (take 5 (sort-by frequency-then-lexicographic-order dance)))))))
+             (take 5 (sort-by frequency-order dance)))))))

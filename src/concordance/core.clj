@@ -18,13 +18,13 @@
 
 ;;; Sorting Options
 
-(def lexicographic-order
+(def alphabetical-order
   "Map comparator for ordering keys in dictionary order."
   ;; String keys will order alphabetically without any assistance.
   identity)
 
 
-(defn frequency-then-lexicographic-order
+(defn frequency-order
   "Map comparator for ordering by largest values first, then alphabetically
   when values are the same."
   [[k v]]
@@ -35,9 +35,9 @@
   "Get a map comparator sorting function based upon the keyword."
   [order]
   (case order
-    "freq" frequency-then-lexicographic-order
+    "freq" frequency-order
     ;; Default to alphabetical order.
-    lexicographic-order))
+    alphabetical-order))
 
 
 ;;; Command Line
