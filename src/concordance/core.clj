@@ -31,7 +31,7 @@
   [(- v) k])
 
 
-(defn sort-fn
+(defn- sort-fn
   "Get a map comparator sorting function based upon the keyword."
   [order]
   (case order
@@ -42,7 +42,7 @@
 
 ;;; Command Line
 
-(defn exit
+(defn- exit
   "Exit after reporting a message."
   [status message]
   (println message)
