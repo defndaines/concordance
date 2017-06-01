@@ -2,9 +2,166 @@
 
 A Clojure library designed to tell how often words appear in a text.
 
+
 ## Usage
 
-FIXME
+A [JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) is
+required to run and develop this application. To build yourself, you will need
+to install [lein](https://leiningen.org/).
+
+### Build an Uberjar
+
+An "uberjar" is a single JAR file containing all required libraries which can be
+invoked relatively easily from the command line.
+
+```shell
+$ lein clean
+$ lein uberjar
+```
+
+This will generate the file under `target/concordance.jar`.
+
+
+### Running Concordance from the Command Line
+
+Once you have the `concordance.jar`, you can run it from the command line using
+the following.
+
+```shell
+$ java -jar concordance.jar path/to/file.txt > results.txt
+```
+
+Output includes the word, a space, then the number of times the word appears in
+the text.
+
+Output will be directed to standard out, so be sure to pipe to a file.
+
+#### Options
+
+If you pass the `--help` flag, you can see the command-line options.
+
+```shell
+$ java -jar concordance.jar --help
+
+Utility for counting the frequency of words in a text.
+
+Usage: concordance [-s ORDER] text.txt
+
+Options:
+  -s, --sort ORDER  alpha  Sorting order. Must be one of "alpha" or "freq".
+  -h, --help
+```
+
+#### Alphabetical Sorting
+
+If no sorting option is passed, output will be alphabetical by default.
+
+```shell
+$ java -jar concordance.jar common-sense.txt
+
+'tis 9
+a 451
+ability 2
+able 11
+ablest 1
+abound 1
+about 5
+above 5
+abroad 2
+abrupt 1
+...
+```
+
+#### Frequency Sorting
+
+If `-s freq` is passed, the output will be sorted by the most frequent words
+first. When multiple words have the same frequency, they will be sorted
+alphabetically.
+
+```shell
+$ java -jar concordance.jar -s freq les-misérable.txt
+
+the 40569
+of 19655
+and 14788
+a 14396
+to 13777
+in 11058
+he 9588
+was 8609
+that 7778
+it 6506
+his 6444
+...
+```
+
+
+### API
+
+When called from Clojure code, the library exposes a `word-count` function, as
+well as the sorting functions, `alphabetical-order` and `frequency-order`.
+
+#### `word-count`
+
+Word count accepts a single string and returns a map of words to frequency
+values.
+
+```clojure
+(require '[concordance.core :as concordance])
+(def meditation "No man is an island entire of itself; every man
+                is a piece of the continent, a part of the main;
+                if a clod be washed away by the sea, Europe
+                is the less, as well as if a promontory were, as
+                well as any manner of thy friends or of thine
+                own were; any man's death diminishes me,
+                because I am involved in mankind.
+                And therefore never send to know for whom
+                the bell tolls; it tolls for thee.")
+(def counts (concordance/word-count meditation))
+
+{"itself" 1 "thine" 1 "of" 5 "involved" 1 "continent" 1 "part" 1
+ "promontory" 1 "every" 1 "it" 1 "send" 1 "by" 1 "is" 3 "europe" 1 "away" 1
+ "sea" 1 "friends" 1 "for" 2 "thy" 1 "whom" 1 "therefore" 1 "because" 1
+ "any" 2 "were" 2 "main" 1 "if" 2 "man" 2 "diminishes" 1 "an" 1 "or" 1
+ "am" 1 "a" 4 "tolls" 2 "never" 1 "own" 1 "manner" 1 "bell" 1 "death" 1
+ "thee" 1 "entire" 1 "be" 1 "and" 1 "piece" 1 "i" 1 "less" 1 "island" 1
+ "no" 1 "well" 2 "clod" 1 "washed" 1 "to" 1 "mankind" 1 "know" 1 "as" 4
+ "me" 1 "the" 5 "in" 1 "man's" 1}
+```
+
+#### Comparators
+
+The exposed
+[Comparator](http://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html)
+functions are designed to work with the core `sort-by` function.
+
+```clojure
+(sort-by concordance/frequency-order counts)
+
+(["of" 5] ["the" 5] ["a" 4] ["as" 4] ["is" 3] ...)
+```
+
+
+## Performance
+
+Concordance is designed to run against a single string or file at a time. As
+such, it will load an entire text into memory in order to generate the
+concordance map. The text is normalized (converted to lowercase), and then
+broken into words. The resulting map will have an entry for each unique word.
+(So, for worst case, `(word-count (slurp "/usr/share/dict/words"))`.) Sorting
+this then performed against the resulting map.
+
+On my (slow) computer, this ends up being pretty reasonable. Generating and
+sorting the concordance for "Les Misérables" (one of the longest English books
+in the public domain) in about 1.6 seconds (plus JVM start-up overhead). A
+concordance for the `words` file (235,886 words on my laptop) takes about 4
+seconds.
+
+A more memory efficient approach would be to accept a stream of strings (or
+lines). The downside to this approach is that it would be more complex, since it
+would prevent using some core Clojure functions which would have to be
+re-written to implement the same resulting functionality.
+
 
 ## License
 
