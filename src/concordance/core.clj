@@ -76,5 +76,8 @@
       (exit (if ok? 0 1) exit-message)
       (with-open [reader (clojure.java.io/reader file-name)]
         (let [counts (reduce count-reducer! (TreeMap.) (line-seq reader))]
-          (doseq [[word freq] counts]
-            (println (str word " " freq))))))))
+          (if (= "freq" sort-order)
+            (doseq [[word freq] (sort-by frequency-order counts)]
+              (println (str word " " freq)))
+            (doseq [[word freq] counts]
+              (println (str word " " freq)))))))))
