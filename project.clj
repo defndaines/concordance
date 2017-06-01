@@ -1,4 +1,4 @@
-(defproject concordance "0.1.0-SNAPSHOT"
+(defproject concordance "0.1.0"
   :description "A library to tell how often words appear in a text."
   :url "https://github.com/defndaines/concordance"
   :license {:name "Eclipse Public License"
