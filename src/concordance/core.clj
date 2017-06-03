@@ -8,23 +8,11 @@
 
 ;;; Word Count Algorithm
 
-(defn word-count
-  "Get the word count frequencies from a given string."
-  [line]
-  (-> line
-      string/lower-case
-      (string/split #"[^\p{Alnum}']+")
-      frequencies))
-
-
 (def inc-count
   "Java BiFunction for incrementing a count in a Map."
   (reify
     java.util.function.BiFunction
-    (apply [this k v]
-      (if v
-        (inc v)
-        1))))
+    (apply [this k v] (if v (inc v) 1))))
 
 
 (defn- count-reducer!
@@ -35,14 +23,18 @@
       (.compute acc (string/lower-case word) inc-count)))
   acc)
 
+(defn word-count
+  "Get the word count frequencies from a given sequence of strings."
+  [arg]
+  (let [lines (if (string? arg) [arg] arg)]
+    (into (sorted-map)
+          (reduce
+            count-reducer!
+            (TreeMap.)
+            lines))))
+
 
 ;;; Sorting Options
-
-(def alphabetical-order
-  "Map comparator for ordering keys in dictionary order."
-  ;; String keys will order alphabetically without any assistance.
-  identity)
-
 
 (defn frequency-order
   "Map comparator for ordering by largest values first, then alphabetically
@@ -51,13 +43,13 @@
   [(- v) k])
 
 
-(defn- sort-fn
-  "Get a map comparator sorting function based upon the keyword."
-  [order]
+(defn- sorted
+  "Get the word count map sorted in the desired order."
+  [order coll]
   (case order
-    "freq" frequency-order
-    ;; Default to alphabetical order.
-    alphabetical-order))
+    "freq" (sort-by frequency-order coll)
+    ;; Sorted alphabetically by default.
+    coll))
 
 
 ;;; Command Line
@@ -75,9 +67,7 @@
     (if exit-message
       (exit (if ok? 0 1) exit-message)
       (with-open [reader (clojure.java.io/reader file-name)]
-        (let [counts (reduce count-reducer! (TreeMap.) (line-seq reader))]
-          (if (= "freq" sort-order)
-            (doseq [[word freq] (sort-by frequency-order counts)]
-              (println (str word " " freq)))
-            (doseq [[word freq] counts]
-              (println (str word " " freq)))))))))
+        (let [counts (word-count (line-seq reader))
+              for-printing (sorted sort-order counts)]
+          (doseq [[word freq] for-printing]
+            (println (str word " " freq))))))))

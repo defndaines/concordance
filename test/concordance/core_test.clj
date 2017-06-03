@@ -25,9 +25,9 @@
   (let [phrase "I read the book \"One Fish, Two Fish, Red Fish, Blue Fish\"
                until I was blue in the face."
         dance (word-count phrase)]
-    (testing "Sort alphabetically."
+    (testing "Sorted alphabetically by default."
       (is (= `("blue" "book" "face")
-             (take 3 (map first (sort-by alphabetical-order dance))))))
+             (take 3 (map first dance)))))
     (testing "Sort by frequency"
       (is (= '(["fish" 4] ["blue" 2] ["i" 2] ["the" 2] ["book" 1])
              (take 5 (sort-by frequency-order dance)))))))
