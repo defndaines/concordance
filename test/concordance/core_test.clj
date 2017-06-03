@@ -14,7 +14,12 @@
            (word-count "One Fish, Two Fish, Red Fish, Blue Fish"))))
   (testing "With apostrophes."
     (is (= {"ain't" 3 "a" 1 "don't" 1 "say" 1 "so" 1 "word" 1}
-           (word-count "Ain't ain't a word, so don't say ain't.")))))
+           (word-count "Ain't ain't a word, so don't say ain't."))))
+  (testing "Doesn't track empty lines."
+    (is (= {"ain't" 3 "a" 1 "don't" 1 "say" 1 "so" 1 "word" 1}
+           (word-count "Ain't ain't a word,
+
+                       so don't say ain't.")))))
 
 (deftest sort-test
   (let [phrase "I read the book \"One Fish, Two Fish, Red Fish, Blue Fish\"
