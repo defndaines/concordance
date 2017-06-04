@@ -2,6 +2,11 @@
 
 A Clojure library designed to tell how often words appear in a text.
 
+For the purposes of this library, a "word" is a sequence of letters, numbers, or
+an apostrophe. All punctuation and white space is ignored (except for the
+aforementioned apostrophe). The apostrophe is treated as part of a word to
+avoid "don't" being turned into the nonsensical "don" and "t".
+
 
 ## Usage
 
