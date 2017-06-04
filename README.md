@@ -108,8 +108,8 @@ well as the sorting functions, `alphabetical-order` and `frequency-order`.
 
 #### `word-count`
 
-Word count accepts a single string and returns a map of words to frequency
-values.
+Word count accepts a single string or a sequnce of strings and returns a map of
+words to frequency values.
 
 ```clojure
 (require '[concordance.core :as concordance])
@@ -138,7 +138,7 @@ values.
 
 The exposed
 [Comparator](http://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html)
-functions are designed to work with the core `sort-by` function.
+function is designed to work with the core `sort-by` function.
 
 ```clojure
 (sort-by concordance/frequency-order counts)
@@ -161,8 +161,8 @@ preference.
 
 This version is more efficient in memory, since it doesn't need to hold the
 whole file in memory to create the map. It can also store the word counts in a
-sorted collection, so does not incur the cost of sorting when the user has
-requested alphabetical ordering.
+sorted collection, so does not incur any additional cost of sorting when the
+user has requested alphabetical ordering.
 
 
 ## License
