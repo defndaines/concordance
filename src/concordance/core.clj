@@ -2,27 +2,39 @@
   "A library to tell how often words appear in a text."
   (:require [clojure.string :as string]
             [concordance.cli :as cli])
+  (:import (java.util TreeMap))
   (:gen-class))
 
 
 ;;; Word Count Algorithm
 
+(def inc-count
+  "Java BiFunction for incrementing a count in a Map."
+  (reify
+    java.util.function.BiFunction
+    (apply [this k v] (if v (inc v) 1))))
+
+
+(defn- count-reducer!
+  "Reducing function which accumulates word frequencies in a *mutable* TreeMap."
+  [^TreeMap acc line]
+  (doseq [word (string/split line #"[^\p{Alnum}']+")]
+    (if (seq word)  ; Skip blank lines
+      (.compute acc (string/lower-case word) inc-count)))
+  acc)
+
 (defn word-count
-  "Get the word count frequencies from a given string."
-  [line]
-  (-> line
-      string/lower-case
-      (string/split #"[^\p{Alnum}']+")
-      frequencies))
+  "Get the word count frequencies from a given sequence of strings."
+  [arg]
+  (let [lines (if (string? arg) [arg] arg)]
+    (into (sorted-map)
+          (reduce
+            count-reducer!
+            (TreeMap.)
+            lines))))
 
 
 ;;; Sorting Options
-
-(def alphabetical-order
-  "Map comparator for ordering keys in dictionary order."
-  ;; String keys will order alphabetically without any assistance.
-  identity)
-
 
 (defn frequency-order
   "Map comparator for ordering by largest values first, then alphabetically
@@ -31,13 +43,13 @@
   [(- v) k])
 
 
-(defn- sort-fn
-  "Get a map comparator sorting function based upon the keyword."
-  [order]
+(defn- sorted
+  "Get the word count map sorted in the desired order."
+  [order coll]
   (case order
-    "freq" frequency-order
-    ;; Default to alphabetical order.
-    alphabetical-order))
+    "freq" (sort-by frequency-order coll)
+    ;; Sorted alphabetically by default.
+    coll))
 
 
 ;;; Command Line
@@ -54,7 +66,8 @@
         (cli/validate-args args)]
     (if exit-message
       (exit (if ok? 0 1) exit-message)
-      (let [order (sort-fn sort-order)
-            counts (sort-by order (word-count (slurp file-name)))]
-        (doseq [[word freq] counts]
-          (println (str word " " freq)))))))
+      (with-open [reader (clojure.java.io/reader file-name)]
+        (let [counts (word-count (line-seq reader))
+              for-printing (sorted sort-order counts)]
+          (doseq [[word freq] for-printing]
+            (println (str word " " freq))))))))

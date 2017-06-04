@@ -108,8 +108,8 @@ well as the sorting functions, `alphabetical-order` and `frequency-order`.
 
 #### `word-count`
 
-Word count accepts a single string and returns a map of words to frequency
-values.
+Word count accepts a single string or a sequnce of strings and returns a map of
+words to frequency values.
 
 ```clojure
 (require '[concordance.core :as concordance])
@@ -138,7 +138,7 @@ values.
 
 The exposed
 [Comparator](http://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html)
-functions are designed to work with the core `sort-by` function.
+function is designed to work with the core `sort-by` function.
 
 ```clojure
 (sort-by concordance/frequency-order counts)
@@ -149,23 +149,20 @@ functions are designed to work with the core `sort-by` function.
 
 ## Performance
 
-Concordance is designed to run against a single string or file at a time. As
-such, it will load an entire text into memory in order to generate the
-concordance map. The text is normalized (converted to lowercase), and then
-broken into words. The resulting map will have an entry for each unique word.
-(So, for worst case, `(word-count (slurp "/usr/share/dict/words"))`.) Sorting
-this then performed against the resulting map.
+*This Branch* represents an approach using a mutable `TreeMap` to aggregate
+frequencies across each line of a file (instead of reading in the entire file at
+once). The time performance improvement is minimal,
+dropping from 1.6 seconds to 1.5 seconds to process "Les Misérables".
 
-On my (slow) computer, this ends up being pretty reasonable. Generating and
-sorting the concordance for "Les Misérables" (one of the longest English books
-in the public domain) in about 1.6 seconds (plus JVM start-up overhead). A
-concordance for the `words` file (235,886 words on my laptop) takes about 4
-seconds.
+From a maintenance perspective, this version is more complicated. Additionally,
+it doesn't naturally match the API of the first version, so `word-count` has to
+handle all the logic of both performing the word count and sorting to
+preference.
 
-A more memory efficient approach would be to accept a stream of strings (or
-lines). The downside to this approach is that it would be more complex, since it
-would prevent using some core Clojure functions which would have to be
-re-written to implement the same resulting functionality.
+This version is more efficient in memory, since it doesn't need to hold the
+whole file in memory to create the map. It can also store the word counts in a
+sorted collection, so does not incur any additional cost of sorting when the
+user has requested alphabetical ordering.
 
 
 ## License
